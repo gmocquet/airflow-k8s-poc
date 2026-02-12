@@ -40,7 +40,7 @@ with DAG(
 
     greet_airflow = KubernetesPodOperator(
         task_id="greet_airflow",
-        name="greet-airflow",
+        name="greet-airflow-kpo",
         namespace=NAMESPACE,
         image=KPO_POC_IMAGE,
         cmds=["k8s-kpo-poc", "hello"],
@@ -55,7 +55,7 @@ with DAG(
 
     sleep_and_log = KubernetesPodOperator(
         task_id="sleep_and_log",
-        name="sleep-and-log",
+        name="sleep-and-log-kpo",
         namespace=NAMESPACE,
         image=KPO_POC_IMAGE,
         cmds=["k8s-kpo-poc", "sleep", "--seconds", "20"],
