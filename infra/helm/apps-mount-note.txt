@@ -1,0 +1,2 @@
+Workers mount the host apps directory into /opt/airflow/apps via hostPath /mnt/airflow-apps.
+Ensure kind cluster has the extraMount configured (infra/kind/cluster.yaml). Recreate the cluster if needed.
