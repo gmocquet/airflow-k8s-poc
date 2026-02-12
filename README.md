@@ -23,3 +23,20 @@ docker buildx inspect --bootstrap
 docker buildx version
 docker buildx ls
 ```
+
+### Getting started
+
+1. Setup the local Airflow cluster
+```bash
+make init && make build-apps && make load-apps
+```
+
+2. Launch the local Airflow stack
+```bash
+make run
+```
+
+3. Clean up resources
+```bash
+make destroy
+```
