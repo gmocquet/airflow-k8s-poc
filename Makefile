@@ -51,7 +51,11 @@ kind-create:
 	@if kind get clusters | grep -qx "$(KIND_CLUSTER_NAME)"; then \
 		echo "kind cluster '$(KIND_CLUSTER_NAME)' already exists; skipping create."; \
 	else \
-		kind create cluster --config $(KIND_CONFIG); \
+		PROJECT_ROOT="$(PWD)"; \
+		tmpfile=$$(mktemp); \
+		env PROJECT_ROOT="$${PROJECT_ROOT}" envsubst < $(KIND_CONFIG) > "$${tmpfile}"; \
+		kind create cluster --config "$${tmpfile}"; \
+		rm -f "$${tmpfile}"; \
 	fi
 
 kind-delete:

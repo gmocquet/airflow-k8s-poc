@@ -4,7 +4,10 @@ name: airflow-local
 nodes:
   - role: control-plane
     extraMounts:
-      - hostPath: /Users/gmocquet/app/private/airflow-k8s-executor/dags
+      # Mount local DAGs directory into the kind node so the hostPath PV can read it.
+      # PROJECT_ROOT is injected by the Makefile via envsubst at cluster creation time.
+      - hostPath: ${PROJECT_ROOT}/dags
         containerPath: /mnt/airflow-dags
-      - hostPath: /Users/gmocquet/app/private/airflow-k8s-executor/apps
+      # Mount local apps directory for task images/CLIs referenced by DAGs.
+      - hostPath: ${PROJECT_ROOT}/apps
         containerPath: /mnt/airflow-apps
