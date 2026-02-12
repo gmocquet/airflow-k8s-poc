@@ -1,5 +1,12 @@
 executor: KubernetesExecutor
 
+config:
+  kubernetes_executor:
+    namespace: "airflow"
+    delete_worker_pods: "False"
+    delete_worker_pods_on_failure: "False"
+    multi_namespace_mode: "False"
+
 images:
   migrationsWaitTimeout: 300
 
@@ -29,6 +36,7 @@ kubernetesPodTemplate: |
   metadata:
     name: airflow-task-template
   spec:
+    ttlSecondsAfterFinished: 360
     restartPolicy: Never
     containers:
       - name: base
