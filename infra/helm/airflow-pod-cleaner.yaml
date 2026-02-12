@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: airflow-pod-cleaner
+  namespace: airflow
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: airflow-worker
+          restartPolicy: OnFailure
+          containers:
+            - name: cleaner
+              image: bitnami/kubectl:1.35
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -euo pipefail
+                  cutoff=$(date -u -d '5 minutes ago' +%s)
+                  kubectl get pods -n airflow -l "airflow.apache.org/component in (worker,task)" -o json \
+                  | python3 - <<'PY'
+import json, sys, datetime, time
+data=json.load(sys.stdin)
+cutoff=int(time.time())-300
+names=[]
+for item in data.get("items", []):
+    phase=item.get("status", {}).get("phase")
+    if phase not in ("Succeeded", "Failed"):
+        continue
+    ts=item["metadata"]["creationTimestamp"]
+    t=datetime.datetime.fromisoformat(ts.rstrip("Z")).timestamp()
+    if t < cutoff:
+        names.append(item["metadata"]["name"])
+if names:
+    print("\n".join(names))
+PY
+                  | xargs -r kubectl delete pod -n airflow --grace-period=0 --wait=false

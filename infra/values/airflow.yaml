@@ -1,0 +1,67 @@
+executor: KubernetesExecutor
+
+images:
+  migrationsWaitTimeout: 300
+
+airflow:
+  config:
+    AIRFLOW__CORE__HOSTNAME_CALLABLE: airflow.utils.net.get_host_ip_address
+    AIRFLOW__LOGGING__ENABLE_TASK_LOG_SERVER: "False"
+    AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: "False"
+    AIRFLOW__KUBERNETES__DELETE_WORKER_PODS_ON_FAILURE: "False"
+  extraPipPackages:
+    - apache-airflow-providers-cncf-kubernetes==10.12.3
+
+workers:
+  env:
+    - name: AIRFLOW__CORE__HOSTNAME_CALLABLE
+      value: airflow.utils.net.get_host_ip_address
+    - name: AIRFLOW__LOGGING__ENABLE_TASK_LOG_SERVER
+      value: "False"
+    - name: AIRFLOW__KUBERNETES__DELETE_WORKER_PODS
+      value: "False"
+    - name: AIRFLOW__KUBERNETES__DELETE_WORKER_PODS_ON_FAILURE
+      value: "False"
+
+kubernetesPodTemplate: |
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: airflow-task-template
+  spec:
+    restartPolicy: Never
+    containers:
+      - name: base
+        env:
+          - name: AIRFLOW__CORE__HOSTNAME_CALLABLE
+            value: airflow.utils.net.get_host_ip_address
+          - name: AIRFLOW__LOGGING__ENABLE_TASK_LOG_SERVER
+            value: "False"
+  extraVolumes:
+    - name: airflow-apps
+      hostPath:
+        path: /mnt/airflow-apps
+        type: Directory
+  extraVolumeMounts:
+    - name: airflow-apps
+      mountPath: /opt/airflow/apps
+      readOnly: true
+
+createUserJob:
+  useHelmHooks: false
+  applyCustomEnv: false
+
+migrateDatabaseJob:
+  useHelmHooks: false
+  applyCustomEnv: false
+
+dags:
+  persistence:
+    enabled: true
+    existingClaim: airflow-dags
+  gitSync:
+    enabled: false
+
+extraEnvFrom: |
+  - secretRef:
+      name: airflow-env
