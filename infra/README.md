@@ -81,3 +81,25 @@ make load-apps
 ```
 
 This makes images like `k8s_kpo_poc:local` available to Airflow tasks without needing an external registry.
+
+## Verify that loaded images persist in the node
+
+`kind load docker-image` copies the image into each node's containerd store, which is
+independent from the host Docker daemon store. The following target proves this: it spins up a
+disposable cluster, loads an image, removes the local Docker copy, and checks the image is still
+usable in the node (a pod with `imagePullPolicy: Never` reaches `Ready`). It creates and destroys
+its own throwaway cluster and cleans up on exit.
+
+```bash
+make kind-verify-load-persistence
+```
+
+By default every created resource (the disposable cluster, the demo pod, the node image copy and
+the build scratch dir) is removed when the script exits. To keep everything for inspection, set
+`KEEP=1` (Makefile) or pass `--keep` to the script directly:
+
+```bash
+make kind-verify-load-persistence KEEP=1
+# or
+infra/scripts/verify-kind-load-persistence.sh --keep
+```

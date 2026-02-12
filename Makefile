@@ -17,7 +17,7 @@ AIRFLOW_ENV_FILE ?= infra/env/airflow.env
 APPS_DIR ?= apps
 APP_BUILD_TAG ?= local
 
-.PHONY: help init run kind-create kind-delete airflow-repo airflow-namespace airflow-dags-volume airflow-secret airflow-install airflow-uninstall status metrics-install admin-rbac admin-token destroy
+.PHONY: help init run kind-create kind-delete kind-verify-load-persistence airflow-repo airflow-namespace airflow-dags-volume airflow-secret airflow-install airflow-uninstall status metrics-install admin-rbac admin-token destroy
 
 help:
 	@printf "Available targets:\n"
@@ -25,6 +25,7 @@ help:
 	@printf "  run                Port-forward Airflow webserver to localhost:8080\n"
 	@printf "  kind-create        Create the kind cluster\n"
 	@printf "  kind-delete        Delete the kind cluster\n"
+	@printf "  kind-verify-load-persistence  Prove kind load images survive local docker rmi (KEEP=1 to keep resources)\n"
 	@printf "  airflow-install    Install/upgrade Airflow via Helm\n"
 	@printf "  airflow-uninstall  Uninstall Airflow\n"
 	@printf "  destroy            Delete Airflow and the kind cluster\n"
@@ -70,6 +71,9 @@ kind-create:
 
 kind-delete:
 	@kind delete cluster --name $(KIND_CLUSTER_NAME)
+
+kind-verify-load-persistence:
+	@KEEP="$(KEEP)" infra/scripts/verify-kind-load-persistence.sh
 
 airflow-repo:
 	@helm repo add apache-airflow https://airflow.apache.org
