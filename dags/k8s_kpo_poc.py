@@ -37,20 +37,20 @@ with DAG(
         python_callable=announce,
     )
 
-    greet_airflow = KubernetesPodOperator(
-        task_id="greet_airflow",
-        name="greet-airflow-kpo",
-        namespace=NAMESPACE,
-        image=KPO_POC_IMAGE,
-        cmds=["k8s-kpo-poc", "hello"],
-        image_pull_policy="IfNotPresent",
-        on_finish_action="keep_pod",
-        get_logs=True,
-        labels={
-            "airflow.apache.org/component": "task",
-            "dag_id": "k8s_kpo_poc",
-        },
-    )
+    # greet_airflow = KubernetesPodOperator(
+    #     task_id="greet_airflow",
+    #     name="greet-airflow-kpo",
+    #     namespace=NAMESPACE,
+    #     image=KPO_POC_IMAGE,
+    #     cmds=["k8s-kpo-poc", "hello"],
+    #     image_pull_policy="IfNotPresent",
+    #     on_finish_action="keep_pod",
+    #     get_logs=True,
+    #     labels={
+    #         "airflow.apache.org/component": "task",
+    #         "dag_id": "k8s_kpo_poc",
+    #     },
+    # )
 
     sleep_and_log = KubernetesPodOperator(
         task_id="sleep_and_log",
@@ -67,4 +67,5 @@ with DAG(
         },
     )
 
-    announce_start >> greet_airflow >> sleep_and_log
+    # announce_start >> greet_airflow >> sleep_and_log
+    announce_start >> sleep_and_log
