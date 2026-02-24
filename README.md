@@ -38,5 +38,5 @@ make run
 
 3. Clean up resources
 ```bash
-make destroy
+make destroy && docker system prune -a --volumes && colima delete
 ```
