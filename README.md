@@ -1,4 +1,4 @@
-# k8s-airflow
+# airflow-k8s-poc
 Airflow running on k8s with KubernetesExecutor
 
 ## Prerequisites (host tools)
