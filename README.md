@@ -6,6 +6,47 @@ containerized dummy Python (Typer) CLI application.
 
 > Deployed with **[Apache Airflow 3.0.2](https://airflow.apache.org/docs/apache-airflow/3.0.2/)** via the official
 > **[Apache Airflow Helm chart 1.18.0](https://artifacthub.io/packages/helm/apache-airflow/airflow/1.18.0)**.
+> The chart's default values for this version are in
+> [`chart/values.yaml`](https://github.com/apache/airflow/blob/helm-chart/1.18.0/chart/values.yaml).
+
+## Author's Note — Agentic Engineering
+
+This repository is a personal proof-of-concept in **agentic engineering**, privately owned by me: I
+designed and directed it end to end, and AI (OpenAI Codex) acted only as an implementer, turning my
+specifications into code.
+
+**What I own — the engineering:**
+
+- **Direction & design** — I drove the project and defined its architecture and repository/folder
+  structure.
+- **Separation of concerns** — I designed the decoupling between the *business logic* (a
+  containerized Python "dummy" CLI application) and the *orchestration layer* (Airflow DAGs), so
+  compute and scheduling evolve independently.
+- **A repeatable pattern** — I structured the workflow so any number of CLI applications are built,
+  packaged, and orchestrated exactly the way the current one is.
+- **Right tool for the CLI layer** — I built the CLI applications with
+  [Typer](https://typer.tiangolo.com/), which provides the generic CLI concerns (argument parsing,
+  subcommands, `--help`, validation) out of the box, so each app carries only its business logic
+  instead of reinventing the plumbing.
+- **Modern, pinned, reproducible tooling** — left to its defaults, AI tends to emit dated,
+  inconsistent setups (e.g. Python 3.10 in the Dockerfile but a different version in
+  `pyproject.toml`, and `pip` as the package manager). I required a single consistent toolchain —
+  [`uv`](https://docs.astral.sh/uv/) with `pyproject.toml`, Python 3.14.2 in both the project and the
+  container image — with every
+  version explicitly pinned (exact `==` matches in `pyproject.toml`, never `latest` or a version
+  range) and checked as the latest at the time of writing. Together with the committed lockfile
+  (`uv.lock`), this keeps builds **reproducible over time**: the same inputs still resolve and build
+  identically months later, not just today.
+- **Production-like realism** — I simulated a production workload by running the stack on Kubernetes.
+- **Deliberate PoC trade-offs** — I wanted an environment I could iterate on in seconds, not
+  minutes, without weakening security. Everything runs locally on `kind`: nothing is exposed
+  publicly on the Internet, there is no heavy preliminary setup to stand up (IAM, KMS, IaC, cloud
+  accounts, load balancers, networking, managed RDS), and no slow change cycles to wait on
+  (`terraform apply`, EKS cluster create/delete, RDS create/delete). I leaned on Helm and Bash for
+  simplicity while keeping full control over core Airflow and Kubernetes settings.
+
+**The agent's role:** implement to spec — following my descriptions and specifications to produce
+the code, manifests, and documentation. The architecture, decomposition, and trade-offs are mine.
 
 ## What this PoC demonstrates
 
@@ -21,15 +62,100 @@ containerized dummy Python (Typer) CLI application.
   (`announce_start`, no pod) into a `KubernetesPodOperator` (`sleep_and_log`) that runs
   `k8s-kpo-poc sleep --seconds 20` in its own pod.
 
-### Execution model
+## Architecture
+
+Two views of the same PoC: the **infrastructure layering** (where everything physically runs) and
+the **execution model** (how a DAG run maps onto Kubernetes).
+
+### Infrastructure
 
 ```mermaid
 flowchart LR
-    sched["Airflow scheduler"]
-    sched -->|"KubernetesExecutor:<br/>one worker pod per task"| w1["Worker pod<br/>announce_start<br/>(PythonOperator)"]
-    sched -->|"KubernetesExecutor"| w2["Worker pod<br/>sleep_and_log<br/>(KubernetesPodOperator)"]
-    w2 -->|"spawns a dedicated task pod"| kpo["Task pod<br/>image: k8s_kpo_poc:local<br/>cmd: k8s-kpo-poc sleep --seconds 20"]
+    stack["Makefile + infra + dags"]
+    apps["apps/k8s_kpo_poc<br/>Dockerfile"]
+
+    subgraph docker["Docker Engine"]
+        dstore[/"Local image store<br/>k8s_kpo_poc:local"/]
+        subgraph kind["kind / k8s"]
+            registry[/"Registry — local image store<br/>k8s_kpo_poc:local"/]
+            subgraph node["single node"]
+                subgraph cp["control plane"]
+                    cpc["kube-apiserver · etcd<br/>kube-scheduler · controller-manager"]
+                end
+                subgraph wn["worker node"]
+                    workers["Airflow Worker pods<br/>KubernetesExecutor · KPO"]
+                    services["Airflow services pods<br/>Scheduler · metadata DB · triggerer<br/>api-server · dag-processor"]
+                end
+            end
+        
+        end
+    end
+    
+    stack ==>|"make init"| docker
+    apps ==>|"make build-apps<br/>docker buildx"| dstore
+    dstore ==>|"make load-apps<br/>kind load"| registry
+    registry -.-> workers
+    registry -.->|"pull from k8s<br/>pullPolicy: IfNotPresent/Always"| services
+    registry -.-> cpc
 ```
+
+The whole stack runs inside a single Docker Engine (via Colima). Docker Engine holds two zones: its
+own **local image store** and the **kind / k8s** zone — which itself holds a **registry** (a local
+image store the node pulls from) and the cluster's **single node**. That node splits into a
+**control plane** and a **worker node** where the pods run: the Airflow **worker pods**
+(KubernetesExecutor · KPO) next to the Airflow **service pods** (scheduler, metadata DB, triggerer,
+api-server, dag-processor). `make build-apps` (`docker buildx`) builds the app image into the Docker
+Engine store; `make load-apps` (`kind load`) copies it from there into the kind registry. Nothing is
+exposed to the Internet.
+
+**Image pull policy (chart defaults).** The cluster relies on the chart defaults. The ephemeral
+**worker pods** the KubernetesExecutor creates to run tasks follow
+[`images.pod_template.pullPolicy`](https://github.com/apache/airflow/blob/helm-chart/1.18.0/chart/values.yaml#L101)
+(default `IfNotPresent`), so a worker pod reuses the image already loaded into the node instead of
+re-pulling it. The long-running Airflow components (scheduler, api-server, triggerer, dag-processor)
+follow
+[`images.airflow.pullPolicy`](https://github.com/apache/airflow/blob/helm-chart/1.18.0/chart/values.yaml#L86)
+(also `IfNotPresent`). The pod a **KubernetesPodOperator** launches is governed by neither field — its
+pull policy comes from the operator's `image_pull_policy` argument in the DAG (Kubernetes default:
+`Always` for `:latest`/untagged images, `IfNotPresent` otherwise).
+
+### Execution model
+
+```mermaid
+flowchart TB
+    sched["Airflow scheduler"]
+
+    subgraph simple["Simple task — e.g. PythonOperator"]
+        direction TB
+        subgraph p1["Pod — created by KubernetesExecutor"]
+            direction TB
+            c1["announce_start<br/>▶ compute runs on this pod"]
+        end
+    end
+
+    subgraph advanced["Advanced task — e.g. KubernetesPodOperator"]
+        direction TB
+        subgraph p2["Pod — created by KubernetesExecutor"]
+            direction TB
+            w2["sleep_and_log · KPO operator<br/>▷ very light compute — only monitors the<br/>KPO run via Kubernetes API calls"]
+        end
+        subgraph p3["Pod — created by KPO (image + params)"]
+            direction TB
+            c3["▶ compute runs on this pod<br/>k8s-kpo-poc sleep --seconds 20"]
+        end
+        w2 -->|"KPO creates an additional pod<br/>from the given image + params"| p3
+    end
+
+    sched --> simple
+    sched --> advanced
+```
+
+With the **KubernetesExecutor**, Airflow runs every task in a dedicated pod it creates on the fly
+(by default all these pods share the same configuration and base image). A **Simple task**
+(`PythonOperator`, `announce_start`) does its compute directly on that pod. An **Advanced task**
+(`KubernetesPodOperator`, `sleep_and_log`) gets its executor pod the same way, but that pod carries
+only very light compute — it just monitors the run through Kubernetes API calls — while KPO creates
+an **additional pod** from the supplied image and parameters, and the real compute happens there.
 
 ## Repository layout
 
@@ -99,9 +225,11 @@ kubectl -n airflow get pods -w   # or: make status
 make destroy && docker system prune -a --volumes && colima delete
 ```
 
-## Inspecting the cluster
+## Screenshots
 
-Once the local Airflow cluster is running, you can interact with it using a CLI client such as
+### Infrastructure
+
+Once the local Airflow cluster is running, you can inspect it with a CLI client such as
 **[k9s](https://github.com/derailed/k9s)**, or a graphical client such as **[Lens](https://lenshq.io/)**
 (recommended). The screenshots below show the running cluster inspected with Lens.
 
@@ -113,6 +241,25 @@ Once the local Airflow cluster is running, you can interact with it using a CLI 
 
 ![Airflow on Kubernetes — pods in Lens](docs/assets/readme/lens-airflow-k8s-cluster-pods.png)
 *Airflow pods*
+
+### Application
+
+The Airflow web UI exposes the orchestration layer — the `k8s_kpo_poc` DAG and its runs.
+
+![Airflow UI — home overview](docs/assets/readme/airflow-overview.png)
+*Airflow home*
+
+![Airflow UI — DAGs list](docs/assets/readme/airflow-dags-overview.png)
+*DAGs list*
+
+![Airflow UI — k8s_kpo_poc DAG overview](docs/assets/readme/airflow-poc-dag-overview.png)
+*`k8s_kpo_poc` — DAG overview*
+
+![Airflow UI — k8s_kpo_poc task graph](docs/assets/readme/airflow-poc-dag-tasks-graph.png)
+*`k8s_kpo_poc` — task graph*
+
+![Airflow UI — k8s_kpo_poc task instances](docs/assets/readme/airflow-poc-dag-tasks-instances.png)
+*`k8s_kpo_poc` — task instances*
 
 ## Running the CLI standalone
 
