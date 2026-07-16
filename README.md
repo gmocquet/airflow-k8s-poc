@@ -4,7 +4,9 @@ A local proof-of-concept running Apache Airflow on Kubernetes (kind) that demons
 **KubernetesExecutor** together with the **KubernetesPodOperator (KPO)** to orchestrate a
 containerized dummy Python (Typer) CLI application.
 
-> Deployed with **[Apache Airflow 3.2.2](https://airflow.apache.org/docs/apache-airflow/3.2.2/)** via the official
+> Deployed with **[Apache Airflow 3.2.2](https://airflow.apache.org/docs/apache-airflow/3.2.2/)**, the
+> **[cncf-kubernetes provider 10.19.0](https://airflow.apache.org/docs/apache-airflow-providers-cncf-kubernetes/10.19.0/index.html)**,
+> via the official
 > **[Apache Airflow Helm chart 1.22.0](https://artifacthub.io/packages/helm/apache-airflow/airflow/1.22.0)**.
 > The chart's default values for this version are in
 > [`chart/values.yaml`](https://github.com/apache/airflow/blob/helm-chart/1.22.0/chart/values.yaml).

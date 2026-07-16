@@ -7,6 +7,7 @@
 - `kubernetes`: 1.35
 - `airflow Helm Chart`: 1.22.0
 - `airflow`: 3.2.2
+- `apache-airflow-providers-cncf-kubernetes`: 10.19.0
 
 - `pre-commit`: 4.6.0
 - `ruff`: 0.15.22
