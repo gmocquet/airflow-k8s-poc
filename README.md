@@ -31,7 +31,7 @@ specifications into code.
 - **Modern, pinned, reproducible tooling** — left to its defaults, AI tends to emit dated,
   inconsistent setups (e.g. Python 3.10 in the Dockerfile but a different version in
   `pyproject.toml`, and `pip` as the package manager). I required a single consistent toolchain —
-  [`uv`](https://docs.astral.sh/uv/) with `pyproject.toml`, Python 3.14.2 in both the project and the
+  [`uv`](https://docs.astral.sh/uv/) with `pyproject.toml`, Python 3.14.6 in both the project and the
   container image — with every
   version explicitly pinned (exact `==` matches in `pyproject.toml`, never `latest` or a version
   range) and checked as the latest at the time of writing. Together with the committed lockfile
@@ -180,12 +180,12 @@ an **additional pod** from the supplied image and parameters, and the real compu
 | kind | 0.31.0 | Local Kubernetes running inside Docker | `brew install kind` |
 | kubectl | 1.35 | Kubernetes CLI | `brew install kubectl` |
 | Helm | latest | Kubernetes package manager (Airflow chart) | `brew install helm` |
-| uv | 0.9.29 | Python toolchain & dependency manager | `brew install uv` |
+| uv | 0.11.29 | Python toolchain & dependency manager | `brew install uv` |
 | Python | OS native | System interpreter — the project Python is managed by `uv` (see note) | — |
 
 > **Python version:** `uv` doubles as the Python version manager — it automatically installs the
 > project-specific Python pinned in [`apps/k8s_kpo_poc/pyproject.toml`](apps/k8s_kpo_poc/pyproject.toml)
-> (currently **3.14.2**). No manual Python install is required; the host only needs its OS-native Python.
+> (currently **3.14.6**). No manual Python install is required; the host only needs its OS-native Python.
 
 ### Colima quick start (if not using Docker Desktop)
 ```bash

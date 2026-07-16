@@ -17,7 +17,9 @@ def hello(name: str = "World") -> None:
 
 
 @app.command()
-def sleep(seconds: int = typer.Option(5, "--seconds", "-s", min=1, help="Seconds to sleep")) -> None:
+def sleep(
+    seconds: int = typer.Option(5, "--seconds", "-s", min=1, help="Seconds to sleep"),
+) -> None:
     """Sleep for the requested time (used by the Airflow PoC)."""
     typer.echo(f"Sleeping for {seconds} seconds...")
     time.sleep(seconds)

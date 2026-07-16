@@ -1,19 +1,19 @@
 # Repository Guidelines
 
 ## Project stack and versions
-- `uv`: 0.9.29
-- `python`: 3.14.3
+- `uv`: 0.11.29
+- `python`: 3.14.6
 - `kind`: 0.31.0 - Local Kubernetes providing a realistic environment for Airflow deployment and testing.
 - `kubernetes`: 1.35
 - `airflow Helm Chart`: 1.22.0
 - `airflow`: 3.2.2
 
-- `pre-commit`: 0.21.1
-- `ruff`: 0.15.0
-- `typer`: 0.21.1
-- `pytest`: 9.0.2
+- `pre-commit`: 4.6.0
+- `ruff`: 0.15.22
+- `typer`: 0.27.0
+- `pytest`: 9.1.1
 
-- Docker base image: python: `3.14.2-slim-trixie`
+- Docker base image: python: `3.14.6-slim-trixie`
   - For uv, use the --copy from method from ghcr.io/astral-sh/uv:trixie-slim 
 
 - Docker 

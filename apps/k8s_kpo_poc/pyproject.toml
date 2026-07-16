@@ -2,9 +2,9 @@
 name = "k8s-kpo-poc"
 version = "0.1.0"
 description = "KubernetesPodOperator PoC CLI app"
-requires-python = "==3.14.2"
+requires-python = "==3.14.6"
 dependencies = [
-  "typer==0.21.1",
+  "typer==0.27.0",
 ]
 
 [project.scripts]
@@ -12,13 +12,13 @@ k8s-kpo-poc = "k8s_kpo_poc.cli:app"
 
 [dependency-groups]
 dev = [
-  "pytest==9.0.2",
-  "ruff==0.15.0",
+  "pytest==9.1.1",
+  "ruff==0.15.22",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 
 [build-system]
-requires = ["hatchling>=1.24.2"]
+requires = ["hatchling>=1.31.0"]
 build-backend = "hatchling.build"
