@@ -4,10 +4,10 @@ A local proof-of-concept running Apache Airflow on Kubernetes (kind) that demons
 **KubernetesExecutor** together with the **KubernetesPodOperator (KPO)** to orchestrate a
 containerized dummy Python (Typer) CLI application.
 
-> Deployed with **[Apache Airflow 3.0.2](https://airflow.apache.org/docs/apache-airflow/3.0.2/)** via the official
-> **[Apache Airflow Helm chart 1.18.0](https://artifacthub.io/packages/helm/apache-airflow/airflow/1.18.0)**.
+> Deployed with **[Apache Airflow 3.2.2](https://airflow.apache.org/docs/apache-airflow/3.2.2/)** via the official
+> **[Apache Airflow Helm chart 1.22.0](https://artifacthub.io/packages/helm/apache-airflow/airflow/1.22.0)**.
 > The chart's default values for this version are in
-> [`chart/values.yaml`](https://github.com/apache/airflow/blob/helm-chart/1.18.0/chart/values.yaml).
+> [`chart/values.yaml`](https://github.com/apache/airflow/blob/helm-chart/1.22.0/chart/values.yaml).
 
 ## Author's Note — Agentic Engineering
 
@@ -110,11 +110,11 @@ exposed to the Internet.
 
 **Image pull policy (chart defaults).** The cluster relies on the chart defaults. The ephemeral
 **worker pods** the KubernetesExecutor creates to run tasks follow
-[`images.pod_template.pullPolicy`](https://github.com/apache/airflow/blob/helm-chart/1.18.0/chart/values.yaml#L101)
+[`images.pod_template.pullPolicy`](https://github.com/apache/airflow/blob/helm-chart/1.22.0/chart/values.yaml#L98)
 (default `IfNotPresent`), so a worker pod reuses the image already loaded into the node instead of
 re-pulling it. The long-running Airflow components (scheduler, api-server, triggerer, dag-processor)
 follow
-[`images.airflow.pullPolicy`](https://github.com/apache/airflow/blob/helm-chart/1.18.0/chart/values.yaml#L86)
+[`images.airflow.pullPolicy`](https://github.com/apache/airflow/blob/helm-chart/1.22.0/chart/values.yaml#L83)
 (also `IfNotPresent`). The pod a **KubernetesPodOperator** launches is governed by neither field — its
 pull policy comes from the operator's `image_pull_policy` argument in the DAG (Kubernetes default:
 `Always` for `:latest`/untagged images, `IfNotPresent` otherwise).

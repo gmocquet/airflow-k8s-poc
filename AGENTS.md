@@ -5,8 +5,8 @@
 - `python`: 3.14.3
 - `kind`: 0.31.0 - Local Kubernetes providing a realistic environment for Airflow deployment and testing.
 - `kubernetes`: 1.35
-- `airflow Helm Chart`: 1.18.0
-- `airflow`: 3.0.2
+- `airflow Helm Chart`: 1.22.0
+- `airflow`: 3.2.2
 
 - `pre-commit`: 0.21.1
 - `ruff`: 0.15.0

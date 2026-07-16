@@ -4,12 +4,13 @@ KIND_CONFIG ?= infra/kind/cluster.yaml
 KIND_CLUSTER_NAME ?= airflow-local
 AIRFLOW_NAMESPACE ?= airflow
 AIRFLOW_HELM_CHART_RELEASE ?= airflow
-AIRFLOW_HELM_CHART_VERSION ?= 1.18.0
-AIRFLOW_VERSION ?= 3.0.2
-# PostgreSQL image pinned by digest (chart default tag 16.1.0-debian-11-r15 was removed from Docker Hub).
-# Image date: 2026-02-10 (last bitnami/postgresql:latest before 2026-02-11).
-# https://hub.docker.com/layers/bitnami/postgresql/latest/images/sha256-c47e54a69b39aa97d4405d68ea02bf2ffe06b646748e2ddf9c761416ead6acd5
-AIRFLOW_HELM_CHART_POSTGRESQL_VERSION ?= sha256:c47e54a69b39aa97d4405d68ea02bf2ffe06b646748e2ddf9c761416ead6acd5
+AIRFLOW_HELM_CHART_VERSION ?= 1.22.0
+AIRFLOW_VERSION ?= 3.2.2
+# PostgreSQL image pinned by digest for reproducibility (tags are mutable). Chart 1.22.0 defaults the
+# postgresql subchart to bitnamilegacy/postgresql, since Bitnami moved its images out of the free
+# Docker Hub repos. This is the digest of the chart default tag 16.1.0-debian-11-r15 (pushed 2025-07-22).
+# https://hub.docker.com/layers/bitnamilegacy/postgresql/16.1.0-debian-11-r15/images/sha256-29e3dd0e7e7a740eabdbae6f82673507d180701a719bbdb6d6308a58cf723e64
+AIRFLOW_HELM_CHART_POSTGRESQL_VERSION ?= sha256:29e3dd0e7e7a740eabdbae6f82673507d180701a719bbdb6d6308a58cf723e64
 AIRFLOW_VALUES ?= infra/values/airflow.yaml
 AIRFLOW_HELM_TIMEOUT ?= 10m
 AIRFLOW_ENV_FILE ?= infra/env/airflow.env

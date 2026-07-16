@@ -17,7 +17,7 @@ airflow:
     AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: "False"
     AIRFLOW__KUBERNETES__DELETE_WORKER_PODS_ON_FAILURE: "False"
   extraPipPackages:
-    - apache-airflow-providers-cncf-kubernetes==10.12.3
+    - apache-airflow-providers-cncf-kubernetes==10.19.0
 
 workers:
   env:
