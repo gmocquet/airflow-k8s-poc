@@ -64,6 +64,17 @@ the code, manifests, and documentation. The architecture, decomposition, and tra
   (`announce_start`, no pod) into a `KubernetesPodOperator` (`sleep_and_log`) that runs
   `k8s-kpo-poc sleep --seconds 20` in its own pod.
 
+## Background & Research
+
+The theory and conclusions behind this PoC — why it pairs the **KubernetesExecutor** with the
+**KubernetesPodOperator**, and what that combination costs — live in
+[`docs/research/`](docs/research/README.md):
+
+- [01 — Airflow core concepts](docs/research/01-airflow-core-concepts.md) — what Airflow is, when it fits, and its components.
+- [02 — Executor vs. Operator](docs/research/02-executor-vs-operator.md) — the two Kubernetes-named components, kept distinct.
+- [03 — KubernetesExecutor meets KubernetesPodOperator](docs/research/03-kubernetes-executor-meets-kpo.md) — the 2-pods-per-task result, proven locally.
+- [04 — Executor & Operator strategy](docs/research/04-executor-strategy.md) — CeleryExecutor + KPO + KEDA and the decision matrix.
+
 ## Architecture
 
 Two views of the same PoC: the **infrastructure layering** (where everything physically runs) and
