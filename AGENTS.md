@@ -28,7 +28,7 @@
 
 ## Project structure
 - Mono repository 
-- dags/: DAG definitions (e.g., `dag_areas_of_interest.py`).
+- dags/: DAG definitions (e.g., `k8s_kpo_poc.py`).
 - apps/: CLI applications (Typer). One subfolder per application, isolated from Airflow context.
   - apps/<app_name>/pyproject.toml: Per-app dependency and tool config (uv).
   - apps/<app_name>/src/<app_name>/: Application package (src layout).
@@ -45,4 +45,4 @@
 
 ## Makefile
 - Root `Makefile` provides quick-start and common workflows.
-- Expected targets: `init`, `build-containers`, `deploy`, `run` (and any helper targets as needed).
+- Expected targets: `init`, `build-apps`, `load-apps`, `run`, `destroy` (and any helper targets as needed).
